@@ -1,0 +1,12 @@
+import mongoose from 'mongoose';
+const { Schema, model } = mongoose;
+const courseSchema = new Schema({ title:{type:String,required:true,trim:true},slug:{type:String,required:true,unique:true},category:{type:String,default:'Computer Science'},description:{type:String,required:true},duration:{type:String,default:'8 weeks'},level:{type:String,default:'Beginner'},fee:{type:Number,default:0,min:0},capacity:{type:Number,default:40,min:1},featured:{type:Boolean,default:false},published:{type:Boolean,default:true},modules:[String],color:{type:String,default:'teal'} },{timestamps:true});
+export const Course=model('Course',courseSchema);
+const studentSchema=new Schema({name:{type:String,required:true},email:{type:String,required:true,lowercase:true,trim:true},phone:{type:String,required:true},education:{type:String,required:true},institution:String,city:String,motivation:String,course:{type:Schema.Types.ObjectId,ref:'Course',required:true},status:{type:String,enum:['pending','approved','rejected'],default:'pending'}},{timestamps:true});
+studentSchema.index({email:1,course:1},{unique:true});
+export const Student=model('Student',studentSchema);
+export const Session=model('Session',new Schema({course:{type:Schema.Types.ObjectId,ref:'Course',required:true},date:{type:String,required:true},topic:{type:String,required:true},startTime:String,endTime:String,notes:String},{timestamps:true}));
+const attendanceSchema=new Schema({session:{type:Schema.Types.ObjectId,ref:'Session',required:true},student:{type:Schema.Types.ObjectId,ref:'Student',required:true},status:{type:String,enum:['present','absent','late','excused'],required:true}},{timestamps:true});
+attendanceSchema.index({session:1,student:1},{unique:true});
+export const Attendance=model('Attendance',attendanceSchema);
+export const Admin=model('Admin',new Schema({email:{type:String,unique:true,lowercase:true},passwordHash:{type:String,required:true}},{timestamps:true}));

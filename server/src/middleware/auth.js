@@ -1,0 +1,2 @@
+import jwt from 'jsonwebtoken';
+export function requireAdmin(req,res,next){try{const token=req.cookies.acc_admin; if(!token) return res.status(401).json({error:'Authentication required'}); const payload=jwt.verify(token,process.env.JWT_SECRET); if(payload.role!=='admin') throw new Error('Invalid role'); req.adminId=payload.sub;next();}catch{return res.status(401).json({error:'Session expired. Please sign in again.'});}}
