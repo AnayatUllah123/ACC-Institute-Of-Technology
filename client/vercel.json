@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://acc-institute-of-technology.vercel.app/api/:path*"
+      "destination": "https://acc-institute-of-tech.vercel.app/api/:path*"
     },
     {
       "source": "/(.*)",
