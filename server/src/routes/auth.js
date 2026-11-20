@@ -32,15 +32,6 @@ router.post(
       ? await bcrypt.compare(req.body.password, admin.passwordHash)
       : false;
 
-    // Temporary diagnostic - remove after fixing login
-    if (process.env.NODE_ENV !== "production") {
-      console.log("\n========== ACC LOGIN DIAGNOSTIC ==========");
-      console.log("Database:", Admin.db.name);
-      console.log("Admin found:", Boolean(admin));
-      console.log("Password matches:", passwordMatches);
-      console.log("==========================================\n");
-    }
-
     // Reject invalid credentials
     if (!admin || !passwordMatches) {
       return res.status(401).json({
