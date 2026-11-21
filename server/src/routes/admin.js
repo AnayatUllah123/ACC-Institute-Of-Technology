@@ -36,10 +36,11 @@ r.get(
   asyncRoute(async (_req, res) => {
     const [courses, students, sessions, pending, byCourse] = await Promise.all([
       Course.countDocuments(),
-      Student.countDocuments(),
+      Student.countDocuments({ archivedAt: null }),
       Session.countDocuments(),
-      Student.countDocuments({ status: "pending" }),
+      Student.countDocuments({ status: "pending", archivedAt: null }),
       Student.aggregate([
+        { $match: { archivedAt: null } },
         { $group: { _id: "$course", count: { $sum: 1 } } },
         {
           $lookup: {
@@ -102,11 +103,9 @@ r.delete(
       (await Student.exists({ course: req.params.id })) ||
       (await Session.exists({ course: req.params.id }))
     )
-      return res
-        .status(409)
-        .json({
-          error: "Course has students or sessions; unpublish it instead",
-        });
+      return res.status(409).json({
+        error: "Course has students or sessions; unpublish it instead",
+      });
     await Course.findByIdAndDelete(req.params.id);
     res.json({ ok: true });
   }),
@@ -114,7 +113,7 @@ r.delete(
 r.get(
   "/students",
   asyncRoute(async (req, res) => {
-    const filter = {};
+    const filter = { archivedAt: null };
     if (req.query.course && mongoose.isValidObjectId(req.query.course))
       filter.course = req.query.course;
     if (
@@ -236,11 +235,9 @@ r.put(
     }).distinct("_id");
     const set = new Set(allowed.map(String));
     if (req.body.records.some((a) => !set.has(a.student)))
-      return res
-        .status(400)
-        .json({
-          error: "Attendance contains a student not approved for this course",
-        });
+      return res.status(400).json({
+        error: "Attendance contains a student not approved for this course",
+      });
     if (
       new Set(req.body.records.map((a) => a.student)).size !==
       req.body.records.length
