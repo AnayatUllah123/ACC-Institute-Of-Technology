@@ -142,6 +142,13 @@ app.use((err, _req, res, _next) => {
     return res.status(400).json({ error: "Invalid record ID" });
   res.status(500).json({ error: "An unexpected server error occurred" });
 });
-app.listen(Number(process.env.PORT) || 4000, () =>
-  console.log("ACC Institute API ready"),
-);
+const PORT = Number(process.env.PORT) || 4000;
+
+const server = app.listen(PORT, "127.0.0.1", () => {
+  console.log(`ACC Institute API ready at http://127.0.0.1:${PORT}`);
+});
+
+server.on("error", (error) => {
+  console.error("Server listening error:", error);
+});
+
