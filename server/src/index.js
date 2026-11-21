@@ -91,12 +91,26 @@ for (const item of seeds)
 const app = express();
 app.disable("x-powered-by");
 app.use(helmet());
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://acc-institute-of-technology.vercel.app",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS origin not allowed"));
+    },
     credentials: true,
   }),
 );
+
 app.use(express.json({ limit: "30kb" }));
 app.use(cookieParser());
 app.use(
@@ -118,15 +132,21 @@ app.use(
   }),
 );
 app.use((req, res, next) => {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+
   const origin = req.get("origin");
-  if (
-    origin &&
-    origin !== (process.env.CLIENT_ORIGIN || "http://localhost:5173")
-  )
-    return res.status(403).json({ error: "Cross-origin request blocked" });
+
+  if (origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({
+      error: "Cross-origin request blocked",
+    });
+  }
+
   next();
 });
+
 app.use("/api/auth", auth);
 app.use("/api", publicRoutes);
 app.use("/api/admin", admin);
@@ -151,4 +171,3 @@ const server = app.listen(PORT, "127.0.0.1", () => {
 server.on("error", (error) => {
   console.error("Server listening error:", error);
 });
-
